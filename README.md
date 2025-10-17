@@ -1,6 +1,6 @@
 # yafg.yazi (Yet Another FG)
 
-Fuzzy find and grep in Yazi using ripgrep and fzf. This plugin provides an interactive search interface that allows you to search file contents and open results directly in Helix editor.
+Fuzzy find and grep in Yazi using ripgrep and fzf. This plugin provides an interactive search interface that allows you to search file contents and open results directly in your configured editor.
 
 > Inspired by [fg.yazi](https://github.com/DreamMaoMao/fg.yazi)
 
@@ -10,7 +10,7 @@ Fuzzy find and grep in Yazi using ripgrep and fzf. This plugin provides an inter
 - `rg` (ripgrep)
 - `fzf`
 - `bat`
-- `hx` (Helix editor)
+- A text editor (default: `hx` Helix)
 
 ## Installation
 
@@ -32,19 +32,38 @@ on  = [ "F", "G" ]
 run = "plugin yafg"
 ```
 
+## Configuration
+
+Customize the editor and command format in `~/.config/yazi/init.lua`:
+
+```lua
+require("yafg"):setup({
+  editor = "nvim",                    -- Editor command (default: "hx")
+  args = { "--noplugin" },            -- Additional editor arguments (default: {})
+  file_arg_format = "+{row} {file}",  -- File argument format (default: "{file}:{row}:{col}")
+})
+```
+
+Format placeholders:
+
+- `{file}` - File path
+- `{row}` - Line number
+- `{col}` - Column number
+
 ## Features
 
 - **Interactive search**: Use ripgrep to search file contents with live preview
 - **Switch modes**: Press `Ctrl-T` to toggle between ripgrep and fzf modes
 - **Multi-select**: Select multiple search results
 - **Preview**: View file contents with syntax highlighting via bat
-- **Direct open**: Opens selected files in Helix editor at the matched line
+- **Direct open**: Opens selected files in your configured editor at the matched line
+- **Configurable**: Customize editor command, arguments, and file format
 
 ## Troubleshooting
 
-- **Failed to start fzf**: ensure all required dependencies are installed (`rg`, `fzf`, `bat`, `bash`, `hx`).
+- **Failed to start fzf**: ensure all required dependencies are installed (`rg`, `fzf`, `bat`, `bash`).
 - **Preview not working**: install `bat` for syntax-highlighted previews.
-- **Editor not opening**: ensure `hx` (Helix) is installed and in your PATH.
+- **Editor not opening**: ensure your configured editor is installed and in your PATH, or customize it in `init.lua`.
 
 ## Development
 

@@ -1,14 +1,34 @@
-local M = {}
+local M = {
+	editor = "hx",
+	args = {},
+	file_arg_format = "{file}:{row}:{col}",
+}
 
-local state = ya.sync(function()
+local cwd = ya.sync(function()
 	return cx.active.current.cwd
 end)
+
+local sync_self = ya.sync(function()
+	local self = {}
+	for key, value in pairs(M) do
+		if type(value) ~= "function" then
+			self[key] = value
+		end
+	end
+	return self
+end)
+
+function M:setup(opts)
+	self.editor = opts.editor or self.editor
+	self.args = opts.args or self.args
+	self.file_arg_format = opts.file_arg_format or self.file_arg_format
+end
 
 function M:entry()
 	ya.emit("escape", { visual = true })
 
 	local _permit = ya.hide()
-	local cwd = state()
+	local cwd = cwd()
 
 	local output, err = M.run_with(cwd)
 	if not output then
@@ -18,15 +38,28 @@ function M:entry()
 	local results = M.split_results(cwd, output)
 	if #results == 0 then
 		return
+	elseif #results == 1 then
+		local first_url = results[1][1]
+		local cha = fs.cha(first_url)
+		ya.emit(cha and cha.is_dir and "cd" or "reveal", { Url(first_url) })
 	end
-	local first_url = results[1][1]
-	local cha = fs.cha(first_url)
-	ya.emit(cha and cha.is_dir and "cd" or "reveal", { Url(first_url) })
-	local paths = {}
+
+	local ss = sync_self()
+	local args = {}
+	for i, arg in ipairs(ss.args) do
+		args[i] = ya.quote(arg)
+	end
+	local file_args = {}
 	for i, result in ipairs(results) do
-		paths[i] = ya.quote(tostring(result[1]) .. ":" .. tostring(result[2]) .. ":" .. tostring(result[3]))
+		local arg = string.gsub(ss.file_arg_format, "{file}", ya.quote(tostring(result[1])))
+		arg = string.gsub(arg, "{row}", tostring(result[2]))
+		arg = string.gsub(arg, "{col}", tostring(result[3]))
+		file_args[i] = arg
 	end
-	os.execute("hx " .. table.concat(paths, " "))
+
+	local cmd = ss.editor .. " " .. table.concat(args, " ") .. " " .. table.concat(file_args, " ")
+	ya.dbg("Yafg", "editor cmd", cmd)
+	os.execute(cmd)
 end
 
 function M.run_with(cwd)
