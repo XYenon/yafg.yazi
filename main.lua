@@ -27,7 +27,7 @@ end
 function M:entry()
 	ya.emit("escape", { visual = true })
 
-	local _permit = ya.hide()
+	local _permit = ui.hide()
 	local cwd = cwd()
 
 	local output, err = M.run_with(cwd)
