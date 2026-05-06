@@ -38,11 +38,14 @@ Customize the editor and command format in `~/.config/yazi/init.lua`:
 
 ```lua
 require("yafg"):setup({
+  toggle_mode_key = "alt-t",          -- fzf key to switch ripgrep/fzf mode (default: "ctrl-t")
   editor = "nvim",                    -- Editor command (default: "hx")
   args = { "--noplugin" },            -- Additional editor arguments (default: {})
   file_arg_format = "+{row} {file}",  -- File argument format (default: "{file}:{row}:{col}")
 })
 ```
+
+`toggle_mode_key` uses the key syntax supported by `fzf --bind`, for example `ctrl-y`, `alt-t`, or `f1`.
 
 Format placeholders:
 
@@ -53,7 +56,7 @@ Format placeholders:
 ## Features
 
 - **Interactive search**: Use ripgrep to search file contents with live preview
-- **Switch modes**: Press `Ctrl-T` to toggle between ripgrep and fzf modes
+- **Switch modes**: Press the configured toggle key (default: `Ctrl-T`) to switch between ripgrep and fzf modes
 - **Multi-select**: Select multiple search results
 - **Preview**: View file contents with syntax highlighting via bat
 - **Direct open**: Opens selected files in your configured editor at the matched line

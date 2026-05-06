@@ -1,4 +1,5 @@
 local M = {
+	toggle_mode_key = "ctrl-t",
 	editor = "hx",
 	args = {},
 	file_arg_format = "{file}:{row}:{col}",
@@ -18,7 +19,14 @@ local sync_self = ya.sync(function()
 	return self
 end)
 
+local function format_key_for_display(key)
+	return (key:gsub("[^-]+", function(part)
+		return part:sub(1, 1):upper() .. part:sub(2)
+	end))
+end
+
 function M:setup(opts)
+	self.toggle_mode_key = opts.toggle_mode_key or self.toggle_mode_key
 	self.editor = opts.editor or self.editor
 	self.args = opts.args or self.args
 	self.file_arg_format = opts.file_arg_format or self.file_arg_format
@@ -63,23 +71,28 @@ function M:entry()
 end
 
 function M.run_with(cwd)
-	local cmd_args = [=[
+	local ss = sync_self()
+	local cmd_args = "TOGGLE_KEY="
+		.. ya.quote(ss.toggle_mode_key)
+		.. " DISPLAY_TOGGLE_KEY="
+		.. ya.quote(format_key_for_display(ss.toggle_mode_key))
+		.. [=[
         RG_PREFIX='rg --column --line-number --no-heading --color=always --smart-case'
         PREVIEW='bat --color=always --highlight-line={2} {1}'
         fzf --ansi --disabled --multi \
             --bind "start:reload:${RG_PREFIX} {q}" \
             --bind "change:reload:sleep 0.1; ${RG_PREFIX} {q} || true" \
-            --bind "ctrl-t:transform:[[ ! \${FZF_PROMPT} =~ ripgrep ]] &&
+            --bind "${TOGGLE_KEY}:transform:[[ ! \${FZF_PROMPT} =~ ripgrep ]] &&
                    echo 'rebind(change)+change-prompt(1. ripgrep> )+disable-search+reload:${RG_PREFIX} \{q} || true' ||
                    echo 'unbind(change)+change-prompt(2. fzf> )+enable-search+reload:${RG_PREFIX} \"\" || true'" \
             --color "hl:-1:underline,hl+:-1:underline:reverse" \
             --prompt '1. ripgrep> ' \
             --delimiter : \
-            --header 'CTRL-T: Switch between ripgrep/fzf' \
+            --header "${DISPLAY_TOGGLE_KEY}: Switch between ripgrep/fzf" \
             --preview "${PREVIEW}" \
             --preview-window 'up,60%,~3,+{2}+3/2' \
             --nth '3..'
-	]=]
+        ]=]
 	local child, err =
 		Command("bash"):arg({ "-c", cmd_args }):cwd(tostring(cwd)):stdin(Command.INHERIT):stdout(Command.PIPED):spawn()
 
