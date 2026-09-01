@@ -79,7 +79,7 @@ function M.run_with(cwd)
 		.. [=[
         RG_PREFIX='rg --column --line-number --no-heading --color=always --smart-case'
         PREVIEW='bat --color=always --highlight-line={2} {1}'
-        fzf --ansi --disabled --multi \
+        fzf --ansi --disabled --multi --with-shell 'bash -c' \
             --bind "start:reload:${RG_PREFIX} {q}" \
             --bind "change:reload:sleep 0.1; ${RG_PREFIX} {q} || true" \
             --bind "${TOGGLE_KEY}:transform:[[ ! \${FZF_PROMPT} =~ ripgrep ]] &&
