@@ -59,7 +59,10 @@ function M:entry()
 	end
 	local file_args = {}
 	for i, result in ipairs(results) do
-		local arg = string.gsub(ss.file_arg_format, "{file}", ya.quote(tostring(result[1])))
+		local quoted_file = ya.quote(tostring(result[1]))
+		local arg = string.gsub(ss.file_arg_format, "{file}", function()
+			return quoted_file
+		end)
 		arg = string.gsub(arg, "{row}", tostring(result[2]))
 		arg = string.gsub(arg, "{col}", tostring(result[3]))
 		file_args[i] = arg
@@ -77,8 +80,8 @@ function M.run_with(cwd)
 		.. " DISPLAY_TOGGLE_KEY="
 		.. ya.quote(format_key_for_display(ss.toggle_mode_key))
 		.. [=[
-        RG_PREFIX='rg --column --line-number --no-heading --color=always --smart-case'
-        PREVIEW='bat --color=always --highlight-line={2} {1}'
+        RG_PREFIX=$'rg --column --line-number --no-heading --color=always --smart-case --field-match-separator \x1f:\x1e'
+        PREVIEW='bat --color=always --highlight-line={2} -- {1}'
         fzf --ansi --disabled --multi \
             --bind "start:reload:${RG_PREFIX} {q}" \
             --bind "change:reload:sleep 0.1; ${RG_PREFIX} {q} || true" \
@@ -87,11 +90,11 @@ function M.run_with(cwd)
                    echo 'unbind(change)+change-prompt(2. fzf> )+enable-search+reload:${RG_PREFIX} \"\" || true'" \
             --color "hl:-1:underline,hl+:-1:underline:reverse" \
             --prompt '1. ripgrep> ' \
-            --delimiter : \
+            --delimiter '\x1f:\x1e' \
+            --nth '4..' \
             --header "${DISPLAY_TOGGLE_KEY}: Switch between ripgrep/fzf" \
             --preview "${PREVIEW}" \
-            --preview-window 'up,60%,~3,+{2}+3/2' \
-            --nth '3..'
+            --preview-window 'up,60%,~3,+{2}+3/2'
         ]=]
 	local child, err =
 		Command("bash"):arg({ "-c", cmd_args }):cwd(tostring(cwd)):stdin(Command.INHERIT):stdout(Command.PIPED):spawn()
@@ -109,15 +112,19 @@ function M.run_with(cwd)
 	return output.stdout, nil
 end
 
+local field_sep = "\31:\30"
+
 function M.split_results(cwd, output)
 	local t = {}
 	for line in output:gmatch("[^\r\n]+") do
-		local file, row, col = (string.gmatch(line, "(..-):(%d+):(%d+):"))()
-		local u = Url(file)
-		if u.is_absolute then
-			t[#t + 1] = { u, row, col }
-		else
-			t[#t + 1] = { cwd:join(u), row, col }
+		local file, row, col = line:match("^(.-)" .. field_sep .. "(%d+)" .. field_sep .. "(%d+)" .. field_sep)
+		if file then
+			local u = Url(file)
+			t[#t + 1] = {
+				u.is_absolute and u or cwd:join(u),
+				row,
+				col,
+			}
 		end
 	end
 	return t
