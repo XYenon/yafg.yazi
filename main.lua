@@ -91,10 +91,10 @@ function M.run_with(cwd)
             --color "hl:-1:underline,hl+:-1:underline:reverse" \
             --prompt '1. ripgrep> ' \
             --delimiter '\x1f\x1e\x1f' \
+            --with-nth '{1}:{2}:{3}:{4}' \
             --header "${DISPLAY_TOGGLE_KEY}: Switch between ripgrep/fzf" \
             --preview "${PREVIEW}" \
-            --preview-window 'up,60%,~3,+{2}+3/2' \
-            --nth '4..'
+            --preview-window 'up,60%,~3,+{2}+3/2'
         ]=]
 	local child, err =
 		Command("bash"):arg({ "-c", cmd_args }):cwd(tostring(cwd)):stdin(Command.INHERIT):stdout(Command.PIPED):spawn()
