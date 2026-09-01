@@ -96,8 +96,13 @@ function M.run_with(cwd)
             --preview "${PREVIEW}" \
             --preview-window 'up,60%,~3,+{2}+3/2'
         ]=]
-	local child, err =
-		Command("bash"):arg({ "-c", cmd_args }):cwd(tostring(cwd)):stdin(Command.INHERIT):stdout(Command.PIPED):spawn()
+	local child, err = Command("bash")
+		:arg({ "-c", cmd_args })
+		:env("SHELL", "bash")
+		:cwd(tostring(cwd))
+		:stdin(Command.INHERIT)
+		:stdout(Command.PIPED)
+		:spawn()
 
 	if not child then
 		return nil, Err("Failed to start `fzf`, error: %s", err)
