@@ -80,7 +80,7 @@ function M.run_with(cwd)
 		.. " DISPLAY_TOGGLE_KEY="
 		.. ya.quote(format_key_for_display(ss.toggle_mode_key))
 		.. [=[
-        RG_PREFIX=$'rg --column --line-number --no-heading --color=always --smart-case --field-match-separator \x1f\x1e\x1f'
+        RG_PREFIX=$'rg --column --line-number --no-heading --color=always --smart-case --field-match-separator \x1f:\x1e'
         PREVIEW='bat --color=always --highlight-line={2} -- {1}'
         fzf --ansi --disabled --multi \
             --bind "start:reload:${RG_PREFIX} {q}" \
@@ -90,8 +90,8 @@ function M.run_with(cwd)
                    echo 'unbind(change)+change-prompt(2. fzf> )+enable-search+reload:${RG_PREFIX} \"\" || true'" \
             --color "hl:-1:underline,hl+:-1:underline:reverse" \
             --prompt '1. ripgrep> ' \
-            --delimiter '\x1f\x1e\x1f' \
-            --with-nth '{1}:{2}:{3}:{4}' \
+            --delimiter '\x1f:\x1e' \
+            --nth '4..' \
             --header "${DISPLAY_TOGGLE_KEY}: Switch between ripgrep/fzf" \
             --preview "${PREVIEW}" \
             --preview-window 'up,60%,~3,+{2}+3/2'
@@ -112,7 +112,7 @@ function M.run_with(cwd)
 	return output.stdout, nil
 end
 
-local field_sep = "\31\30\31"
+local field_sep = "\31:\30"
 
 function M.split_results(cwd, output)
 	local t = {}
