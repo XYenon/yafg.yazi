@@ -81,7 +81,7 @@ function M.run_with(cwd)
 		.. ya.quote(format_key_for_display(ss.toggle_mode_key))
 		.. [=[
         RG_PREFIX=$'rg --column --line-number --no-heading --color=always --smart-case --field-match-separator \x1f\x1e\x1f'
-        PREVIEW='bat --color=always --highlight-line={2} {1}'
+        PREVIEW='bat --color=always --highlight-line={2} -- {1}'
         fzf --ansi --disabled --multi \
             --bind "start:reload:${RG_PREFIX} {q}" \
             --bind "change:reload:sleep 0.1; ${RG_PREFIX} {q} || true" \
